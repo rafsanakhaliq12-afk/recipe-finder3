@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Recipe Finder — Professional Project</title>
+  <meta name="description" content="Recipe Finder: search meals by name or ingredient, view full recipe details, and open source or YouTube video." />
+  
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: radial-gradient(800px 400px at 10% 10%, rgba(255,122,89,0.06), transparent), linear-gradient(180deg,#071021 0%, #071827 100%);
+  color: #e6eef6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 18px;
+  width: 1100px;
+  max-width: 98%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.6);
+  border: 1px solid rgba(255,255,255,0.03);
+  align-items: start;
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff7a59, #7c5cff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 20px;
+  color: #fff;
+  box-shadow: 0 6px 22px rgba(124,92,255,0.12);
+}
+
+h1 { font-size: 18px; margin: 0; }
+p.lead { margin: 0; color: #9aa4b2; font-size: 13px; }
+.small { font-size: 13px; color: #9aa4b2; }
+
+.search-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.02);
+  background: transparent;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  font-size: 15px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 10px;
+}
+
+.btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  background: rgba(255,255,255,0.03);
+  color: #9aa4b2;
+}
+
+.btn:hover { background: rgba(255,255,255,0.05); }
+
+.btn.primary {
+  background: linear-gradient(90deg, #ff7a59, #7c5cff);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(124,92,255,0.12);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.chip {
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.02);
+  cursor: pointer;
+  color: #9aa4b2;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.chip.active, .chip:hover {
+  background: rgba(255,255,255,0.03);
+  color: #fff;
+  border-color: rgba(255,255,255,0.05);
+}
+
+.results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  border: 1px solid rgba(255,255,255,0.03);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+.card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(2,6,23,0.5); }
+
+.card img { width: 100%; height: 160px; object-fit: cover; display: block; }
+
+.card-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-title { font-weight: 700; }
+.meta { font-size: 13px; color: #9aa4b2; }
+
+.side { display: flex; flex-direction: column; gap: 12px; }
+.panel { background: transparent; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.02); }
+.random-btn { width: 100%; text-align: center; }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2,6,23,0.6);
+  z-index: 999;
+}
+
+.modal {
+  width: 960px;
+  max-width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 18px;
+  background: linear-gradient(180deg,#031225,#071827);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.modal-close {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.04);
+  color: #9aa4b2;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover { background: rgba(255,255,255,0.03); }
+
+.modal-grid { display: grid; grid-template-columns: 360px 1fr; gap: 14px; }
+.ingredients { background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px; }
+.ing-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.ing-list li { background: rgba(255,255,255,0.02); padding: 8px; border-radius: 8px; font-weight: 600; color: #fff; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tag { background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 8px; font-size: 13px; color: #9aa4b2; }
+
+.empty {
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+  color: #9aa4b2;
+  border: 1px dashed rgba(255,255,255,0.02);
+}
+
+.loader {
+  display: inline-block;
+  border: 4px solid rgba(255,255,255,0.04);
+  border-left-color: #ff7a59;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 980px) {
+  .app {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+  .modal-grid {
+    grid-template-columns: 1fr;
+  }
+  .side .btn { width: 100%; }
+}
+
+
+@media (max-width: 600px) {
+  .search-card {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .search-card .btn { width: 100%; }
+  .filters { justify-content: flex-start; gap: 6px; }
+}
+
+
+@media (max-width: 480px) {
+  .results {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .card img { height: 140px; }
+}
+
+
+@media (max-width: 700px) {
+  .modal img { height: auto; max-height: 300px; width: 100%; object-fit: cover; }
+}
+
+
+@media (max-width: 360px) {
+  .card img { height: 120px; }
+  .search-input { font-size: 14px; padding: 8px; }
+  .btn { font-size: 13px; padding: 8px 10px; }
+}
+
+
+  </style>
+</head>
+
+<body>
+  <main class="app" id="app" aria-live="polite">
+   
+    <section>
+      <header class="main-header">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">RF</div>
+          <div>
+            <h1>Recipe Finder</h1>
+            <p class="lead">Search recipes by name or ingredient — professional, responsive, and accessible.</p>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="small">Assignment: API-based JS project</div>
+          <div class="small">Tech: HTML • CSS • JS</div>
+        </div>
+      </header>
+
+    
+      <div class="search-card" role="search" aria-label="Search recipes">
+        <input id="q" class="search-input" placeholder="Search by recipe name or ingredient" aria-label="Search recipes" />
+        <button id="byName" class="btn primary" title="Search by name">Search</button>
+        <button id="byIngredient" class="btn" title="Search by ingredient">By Ingredient</button>
+      </div>
+
+    
+      <div class="filters" id="filters" aria-hidden="true">
+        <button class="chip" data-q="chicken">Chicken</button>
+        <button class="chip" data-q="beef">Beef</button>
+        <button class="chip" data-q="vegetarian">Vegetarian</button>
+        <button class="chip" data-q="rice">Rice</button>
+      </div>
+
+      
+      <div id="resultsArea">
+        <div id="results" class="results" aria-live="polite"></div>
+        <div id="empty" class="empty" style="display:none;margin-top:14px">
+          <div style="font-size:18px;margin-bottom:8px">No recipes found</div>
+          <div class="small">Try another search or click <button id="randomInline" class="btn">Random Recipe</button></div>
+        </div>
+      </div>
+    </section>
+
+    
+    <aside class="side" aria-label="Sidebar">
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small">Quick actions</div>
+            <strong style="display:block">Try a random recipe</strong>
+          </div>
+          <button id="random" class="btn primary random-btn">click Here</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <label class="small">Results per page</label>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn" data-per="8">8</button>
+          <button class="btn active" data-per="12">12</button>
+          <button class="btn" data-per="24">24</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <label class="small">About this project</label>
+        <p class="small" style="margin-top:8px">
+         Recipe Finder is a modern, responsive web app that lets users search for meals by name or ingredient. Built using JavaScript, HTML, and CSS, it connects to TheMealDB public API to fetch real-time recipes, including detailed ingredients, instructions, and links to official sources or YouTube tutorials.
+        </p>
+      </div>
+    </aside>
+  </main>
+
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true" aria-modal="true">
+    <div class="modal" role="document" aria-label="Recipe details">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div><strong id="modalTitle">Recipe</strong><div class="small" id="modalCat"></div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="openYoutube" class="btn" style="display:none">YouTube</button>
+          <button id="openSource" class="btn" style="display:none">Source</button>
+          <button id="closeModal" class="modal-close">Close</button>
+        </div>
+      </div>
+
+      <div class="modal-grid">
+        <div>
+          <img id="modalImage" src="" alt="" style="width:100%;height:220px;object-fit:cover;border-radius:8px;margin-bottom:10px" />
+          <div class="ingredients">
+            <strong>Ingredients</strong>
+            <ul id="ingredientList" class="ing-list" aria-live="polite"></ul>
+            <div class="small tags" id="tagList"></div>
+          </div>
+        </div>
+        <div>
+          <div style="margin-bottom:10px">
+            <strong>Instructions</strong>
+            <p id="instructions" class="small" style="white-space:pre-wrap;margin-top:10px;color:#d7e3f3"></p>
+          </div>
+          <div>
+            <strong>Extra</strong>
+            <p class="small" id="extraInfo"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+ 
+<script>
+(function(){
+  const qInput = document.getElementById('q');
+  const byNameBtn = document.getElementById('byName');
+  const byIngBtn = document.getElementById('byIngredient');
+  const resultsEl = document.getElementById('results');
+  const emptyEl = document.getElementById('empty');
+  const randomBtn = document.getElementById('random');
+  const randomInline = document.getElementById('randomInline');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalImage = document.getElementById('modalImage');
+  const ingredientList = document.getElementById('ingredientList');
+  const instructionsEl = document.getElementById('instructions');
+  const openYoutube = document.getElementById('openYoutube');
+  const openSource = document.getElementById('openSource');
+  const closeModal = document.getElementById('closeModal');
+  const modalCat = document.getElementById('modalCat');
+  const tagList = document.getElementById('tagList');
+  const extraInfo = document.getElementById('extraInfo');
+
+  let perPage = 12;
+  let lastResults = [];
+
+
+  async function fetchJson(url){
+    const res = await fetch(url);
+    return await res.json();
+  }
+
+  function escapeHtml(s){ 
+    return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); 
+  }
+
+
+  function createCard(meal){
+    const el = document.createElement('article');
+    el.className = 'card';
+    el.tabIndex = 0;
+    el.setAttribute('role','button');
+    el.setAttribute('aria-pressed','false');
+    el.innerHTML = `
+      <img src="${meal.strMealThumb}" alt="${escapeHtml(meal.strMeal)}" loading="lazy" />
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="card-title">${escapeHtml(meal.strMeal)}</div>
+            <div class="meta">${meal.strArea ? escapeHtml(meal.strArea)+' • ' : ''}${meal.strCategory || ''}</div>
+          </div>
+          <div style="text-align:right">
+            <button class="btn" data-id="${meal.idMeal}" aria-label="View details for ${escapeHtml(meal.strMeal)}">View</button>
+          </div>
+        </div>
+      </div>
+    `;
+    el.querySelector('button[data-id]').addEventListener('click', e => openRecipeById(e.currentTarget.dataset.id));
+    el.addEventListener('keydown', e => { if(e.key==='Enter'){ el.querySelector('button[data-id]').click(); } });
+    return el;
+  }
+
+  function clearResults(){ resultsEl.innerHTML=''; emptyEl.style.display='none'; }
+
+  function showEmpty(msg){
+    resultsEl.innerHTML='';
+    emptyEl.style.display='block';
+    emptyEl.querySelector('div').textContent = msg || 'No recipes';
+  }
+
+
+  function renderSearchResults(meals){
+    clearResults();
+    if(!meals || meals.length===0){ showEmpty('No recipes found.'); return; }
+    lastResults = meals.slice(0);
+    const frag = document.createDocumentFragment();
+    meals.slice(0, perPage).forEach(m => frag.appendChild(createCard(m)));
+    resultsEl.appendChild(frag);
+  }
+
+
+  async function searchByName(q){
+    if(!q) return showEmpty('Please enter a search term');
+    try{
+      const data = await fetchJson(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(q)}`);
+      renderSearchResults(data.meals);
+    } catch { showEmpty('An error occurred.'); }
+  }
+
+  async function searchByIngredient(q){
+    if(!q) return showEmpty('Please enter an ingredient');
+    try{
+      const data = await fetchJson(`https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(q)}`);
+      renderSearchResults(data.meals);
+    } catch { showEmpty('An error occurred.'); }
+  }
+
+
+  function showModalLoading(){
+    modalBackdrop.style.display='flex';
+    modalBackdrop.setAttribute('aria-hidden','false');
+    modalTitle.textContent='Loading...';
+    modalImage.src=''; ingredientList.innerHTML='<li class="small">Loading...</li>'; instructionsEl.textContent='';
+    openYoutube.style.display='none'; openSource.style.display='none';
+  }
+
+  function closeModalFn(){ 
+    modalBackdrop.style.display='none'; 
+    modalBackdrop.setAttribute('aria-hidden','true'); 
+  }
+
+  async function openRecipeById(id){
+    try{
+      showModalLoading();
+      const data = await fetchJson(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${encodeURIComponent(id)}`);
+      if(!data.meals || !data.meals[0]){ closeModalFn(); alert('Recipe not available'); return; }
+      fillModal(data.meals[0]);
+    } catch { closeModalFn(); alert('Failed to load recipe'); }
+  }
+
+  async function randomRecipe(){
+    try{
+      showModalLoading();
+      const data = await fetchJson(`https://www.themealdb.com/api/json/v1/1/random.php`);
+      if(!data.meals || !data.meals[0]){ closeModalFn(); alert('No random recipe'); return; }
+      fillModal(data.meals[0]);
+    } catch { closeModalFn(); alert('Failed to load random recipe'); }
+  }
+
+  function fillModal(meal){
+    modalBackdrop.style.display='flex';
+    modalBackdrop.setAttribute('aria-hidden','false');
+    modalTitle.textContent = meal.strMeal || 'Recipe';
+    modalCat.textContent = `${meal.strArea || ''}${meal.strCategory ? ' • '+meal.strCategory : ''}`;
+    modalImage.src = meal.strMealThumb || '';
+    modalImage.alt = meal.strMeal || 'Recipe image';
+    ingredientList.innerHTML='';
+    for(let i=1;i<=20;i++){
+      const ing = meal['strIngredient'+i];
+      const measure = meal['strMeasure'+i];
+      if(ing && ing.trim()){
+        const li = document.createElement('li');
+        li.textContent = `${measure ? measure.trim()+' — ' : ''}${ing.trim()}`;
+        ingredientList.appendChild(li);
+      }
+    }
+    instructionsEl.textContent = meal.strInstructions || 'No instructions available';
+    tagList.innerHTML='';
+    if(meal.strTags){ 
+      meal.strTags.split(',').forEach(t => { 
+        const el=document.createElement('span'); 
+        el.className='tag'; 
+        el.textContent=t; 
+        tagList.appendChild(el); 
+      }); 
+    }
+    extraInfo.innerHTML = `
+      ${meal.strSource ? '<div>Source: <a target="_blank" rel="noopener" href="'+escapeHtml(meal.strSource)+'">'+escapeHtml(meal.strSource)+'</a></div>' : ''}
+      ${meal.strArea ? '<div>Origin: '+escapeHtml(meal.strArea)+'</div>' : ''}
+    `;
+    if(meal.strYoutube){ openYoutube.style.display='inline-block'; openYoutube.onclick=()=>window.open(meal.strYoutube,'_blank','noopener'); } 
+    else openYoutube.style.display='none';
+    if(meal.strSource){ openSource.style.display='inline-block'; openSource.onclick=()=>window.open(meal.strSource,'_blank','noopener'); } 
+    else openSource.style.display='none';
+    closeModal.focus();
+  }
+
+ 
+  byNameBtn.addEventListener('click', ()=>searchByName(qInput.value.trim()));
+  byIngBtn.addEventListener('click', ()=>searchByIngredient(qInput.value.trim()));
+  qInput.addEventListener('keydown', e => { if(e.key==='Enter') searchByName(qInput.value.trim()); });
+  randomBtn.addEventListener('click', randomRecipe);
+  randomInline.addEventListener('click', randomRecipe);
+  closeModal.addEventListener('click', closeModalFn);
+  modalBackdrop.addEventListener('click', e => { if(e.target===modalBackdrop) closeModalFn(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeModalFn(); });
+
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    qInput.value = c.dataset.q; 
+    searchByIngredient(c.dataset.q);
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); 
+    c.classList.add('active');
+  }));
+
+  document.querySelectorAll('[data-per]').forEach(b => b.addEventListener('click', ()=>{
+    document.querySelectorAll('[data-per]').forEach(x=>x.classList.remove('active')); 
+    b.classList.add('active'); 
+    perPage=Number(b.dataset.per)||12;
+  }));
+
+
+  (async function initialLoad(){
+    resultsEl.innerHTML = '';
+    for(let i=0;i<6;i++){
+      fetchJson('https://www.themealdb.com/api/json/v1/1/random.php')
+        .then(r => {
+          if(r.meals && r.meals[0]){
+            resultsEl.appendChild(createCard(r.meals[0]));
+          }
+        })
+        .catch(()=>{}); 
+    }
+  })();
+
+})();
+</script>
+
+</body>
+</html>
